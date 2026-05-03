@@ -7,9 +7,10 @@
 
     <script>
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '775623631897338'); // NOVO PIXEL ATUALIZADO
+    fbq('init', '775623631897338'); // NOVO PIXEL MANTIDO
     fbq('track', 'PageView');
     </script>
+
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; }
         iframe { width: 100%; height: 100vh; border: none; display: block; }
@@ -30,12 +31,23 @@
         async function carregarTally() {
             const urlParams = new URLSearchParams(window.location.search);
             const valor = urlParams.get('valor') || '';
-            const fbclid = urlParams.get('fbclid') || '';
+            const fbclidUrl = urlParams.get('fbclid') || '';
             
-            // FBC Real (se vier de anúncio) ou identificador de WhatsApp
-            const fbc = fbclid ? `fb.1.${Date.now()}.${fbclid}` : `fb.1.${Date.now()}.whatsapp_direct`;
+            // --- LÓGICA DE RECUPERAÇÃO DO FBC (COOKIE > URL > FALLBACK) ---
+            // 1. Tenta pegar o cookie real que o Pixel injetou
+            let fbc = getCookie('_fbc');
 
-            // BUSCA PELO FBP REAL: Tenta 6 vezes (3 segundos total)
+            // 2. Se não achou no cookie, mas tem na URL, monta o padrão manualmente
+            if (!fbc && fbclidUrl) {
+                fbc = `fb.1.${Date.now()}.${fbclidUrl}`;
+            }
+
+            // 3. Se ainda assim estiver vazio, marca como vindo do seu WhatsApp
+            if (!fbc) {
+                fbc = `fb.1.${Date.now()}.whatsapp_direct`;
+            }
+
+            // BUSCA PELO FBP COM RETRY (Mantido para garantir cruzamento de dados)
             let fbp = "";
             for (let i = 0; i < 6; i++) {
                 fbp = getCookie('_fbp');
@@ -54,8 +66,8 @@
                 clearTimeout(timeoutId);
             } catch (e) { ip = "1.1.1.1"; }
 
-            const tallyID = "rj090o"; // NOVO TALLY ID ATUALIZADO
-            const finalURL = `https://tally.so/r/${tallyID}?valor=${valor}&fbc=${fbc}&fbp=${fbp}&ip=${ip}&ua=${encodeURIComponent(ua)}`;
+            const tallyID = "rj090o"; // NOVO TALLY ID MANTIDO
+            const finalURL = `https://tally.so/r/${tallyID}?valor=${valor}&fbc=${encodeURIComponent(fbc)}&fbp=${fbp}&ip=${ip}&ua=${encodeURIComponent(ua)}`;
             
             const iframe = document.getElementById('tally-iframe');
             if (iframe) {
