@@ -1,142 +1,94 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pagamento Seguro - Nexplay</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento Seguro - Agência CW</title>
 
-  <!-- Facebook Pixel Code -->
-  <script>
-    !function(f,b,e,v,n,t,s){
-      if(f.fbq)return;
-      n=f.fbq=function(){
-        n.callMethod ? n.callMethod.apply(n,arguments) : n.queue.push(arguments)
-      };
-      if(!f._fbq)f._fbq=n;
-      n.push=n;
-      n.loaded=!0;
-      n.version='2.0';
-      n.queue=[];
-      t=b.createElement(e);
-      t.async=!0;
-      t.src=v;
-      s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)
-    }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
-
-    fbq('init', '1742913123342515');
+    <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1742913123342515'); // NOVO PIXEL ATUALIZADO
     fbq('track', 'PageView');
-  </script>
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none" 
+             src="https://www.facebook.com/tr?id=1742913123342515&ev=PageView&noscript=1"/>
+    </noscript>
 
-  <noscript>
-    <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=1742913123342515&ev=PageView&noscript=1" />
-  </noscript>
-
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #ffffff;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100vh;
-      border: none;
-      display: block;
-    }
-  </style>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; }
+        iframe { width: 100%; height: 100vh; border: none; display: block; }
+    </style>
 </head>
 <body>
-  <iframe id="tally-iframe" src="about:blank"></iframe>
 
-  <script>
-    function getCookie(name) {
-      const value = "; " + document.cookie;
-      const parts = value.split("; " + name + "=");
-      if (parts.length === 2) return parts.pop().split(";").shift();
-      return "";
-    }
+    <iframe id="tally-iframe" src="about:blank"></iframe>
 
-    function getParam(name) {
-      return new URLSearchParams(window.location.search).get(name) || "";
-    }
+    <script>
+        function getCookie(name) {
+            const value = "; " + document.cookie;
+            const parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return "";
+        }
 
-    async function carregarTally() {
-      const valor = getParam("valor");
-      const fbclidUrl = getParam("fbclid");
+        async function carregarTally() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const valor = urlParams.get('valor') || '';
+            const fbclidUrl = urlParams.get('fbclid') || '';
+            
+            // --- ESTRATÉGIA DE DESENTUPIMENTO DO FBC ---
+            // 1. Tenta recuperar o cookie _fbc (DNA do anúncio que o Pixel salva no navegador)
+            let fbc = getCookie('_fbc');
 
-      const utmSource = getParam("utm_source");
-      const utmMedium = getParam("utm_medium");
-      const utmCampaign = getParam("utm_campaign");
-      const utmContent = getParam("utm_content");
-      const utmTerm = getParam("utm_term");
+            // 2. Se não tem cookie, mas tem o fbclid na URL, monta o rastro manualmente
+            if (!fbc && fbclidUrl) {
+                fbc = `fb.1.${Date.now()}.${fbclidUrl}`;
+            }
 
-      let fbc = getCookie("_fbc");
+            // 3. Fallback final: Se nada funcionar, marca como vindo do WhatsApp da Agência
+            if (!fbc) {
+                fbc = `fb.1.${Date.now()}.whatsapp_direct`;
+            }
 
-      if (!fbc && fbclidUrl) {
-        fbc = `fb.1.${Date.now()}.${fbclidUrl}`;
-      }
+            // --- BUSCA PELO FBP COM RETRY (Para garantir o cruzamento de dados) ---
+            let fbp = "";
+            for (let i = 0; i < 6; i++) {
+                fbp = getCookie('_fbp');
+                if (fbp) break; 
+                await new Promise(r => setTimeout(r, 500));
+            }
 
-      if (!fbc) {
-        fbc = `fb.1.${Date.now()}.direct`;
-      }
+            // --- CAPTURA DE IP COM TIMEOUT (Crucial para performance no seu i3) ---
+            const ua = navigator.userAgent.substring(0, 150);
+            let ip = '';
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000); 
+                const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+                const data = await res.json();
+                ip = data.ip;
+                clearTimeout(timeoutId);
+            } catch (e) { 
+                ip = "1.1.1.1"; 
+            }
 
-      let fbp = "";
-      for (let i = 0; i < 6; i++) {
-        fbp = getCookie("_fbp");
-        if (fbp) break;
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+            const tallyID = "rj090o"; // NOVO ID DO TALLY ATUALIZADO
+            // URL final com todos os parâmetros encodados para evitar quebras
+            const finalURL = `https://tally.so/r/${tallyID}?valor=${valor}&fbc=${encodeURIComponent(fbc)}&fbp=${fbp}&ip=${ip}&ua=${encodeURIComponent(ua)}`;
+            
+            const iframe = document.getElementById('tally-iframe');
+            if (iframe) {
+                iframe.src = finalURL;
+            }
+        }
 
-      const ua = navigator.userAgent.substring(0, 150);
-
-      let ip = "";
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-        const res = await fetch("https://api.ipify.org?format=json", {
-          signal: controller.signal
-        });
-
-        const data = await res.json();
-        ip = data.ip || "";
-
-        clearTimeout(timeoutId);
-      } catch (e) {
-        ip = "";
-      }
-
-      const tallyID = "rj090o";
-
-      const params = new URLSearchParams({
-        valor,
-        fbc,
-        fbp,
-        ip,
-        ua,
-        fbclid: fbclidUrl,
-        utm_source: utmSource,
-        utm_medium: utmMedium,
-        utm_campaign: utmCampaign,
-        utm_content: utmContent,
-        utm_term: utmTerm
-      });
-
-      const finalURL = `https://tally.so/r/${tallyID}?${params.toString()}`;
-
-      const iframe = document.getElementById("tally-iframe");
-      if (iframe) {
-        iframe.src = finalURL;
-      }
-    }
-
-    if (document.readyState === "complete") {
-      carregarTally();
-    } else {
-      window.addEventListene
+        // Garante execução limpa após o carregamento do DOM
+        if (document.readyState === 'complete') {
+            carregarTally();
+        } else {
+            window.addEventListener('load', carregarTally);
+        }
+    </script>
+</body>
+</html>
