@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -46,6 +45,8 @@
         async function carregarTally() {
             const urlParams = new URLSearchParams(window.location.search);
             const valor = urlParams.get('valor') || '';
+            // --- TIKTOK: evento de COMPRA (esta landing e a pagina pos-pagamento) ---
+            try { if (window.ttq) { ttq.track('CompletePayment', { value: parseFloat(String(valor).replace(',', '.')) || 0, currency: 'BRL', content_type: 'product' }); } } catch (e) {}
             const fbclidUrl = urlParams.get('fbclid') || '';
             // --- TIKTOK: ttclid (URL ou cookie _ttclid) e _ttp (cookie) ---
             const ttclidUrl = urlParams.get('ttclid') || '';
