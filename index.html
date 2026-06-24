@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -14,6 +15,16 @@
         <img height="1" width="1" style="display:none" 
              src="https://www.facebook.com/tr?id=1742913123342515&ev=PageView&noscript=1"/>
     </noscript>
+
+    <!-- TikTok Pixel Code Start -->
+    <script>
+    !function (w, d, t) {
+      w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+      ttq.load('D8U151BC77U8B1P4ML70');
+      ttq.page();
+    }(window, document, 'ttq');
+    </script>
+    <!-- TikTok Pixel Code End -->
 
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; }
@@ -36,6 +47,11 @@
             const urlParams = new URLSearchParams(window.location.search);
             const valor = urlParams.get('valor') || '';
             const fbclidUrl = urlParams.get('fbclid') || '';
+            // --- TIKTOK: ttclid (URL ou cookie _ttclid) e _ttp (cookie) ---
+            const ttclidUrl = urlParams.get('ttclid') || '';
+            let ttclid = getCookie('_ttclid') || ttclidUrl;
+            let ttp = "";
+            for (let i = 0; i < 6; i++) { ttp = getCookie('_ttp'); if (ttp) break; await new Promise(r => setTimeout(r, 500)); }
             
             // --- ESTRATÉGIA DE DESENTUPIMENTO DO FBC ---
             // 1. Tenta recuperar o cookie _fbc (DNA do anúncio que o Pixel salva no navegador)
@@ -75,7 +91,7 @@
 
             const tallyID = "rj090o"; // NOVO ID DO TALLY ATUALIZADO
             // URL final com todos os parâmetros encodados para evitar quebras
-            const finalURL = `https://tally.so/r/${tallyID}?valor=${valor}&fbc=${encodeURIComponent(fbc)}&fbp=${fbp}&ip=${ip}&ua=${encodeURIComponent(ua)}`;
+            const finalURL = `https://tally.so/r/${tallyID}?valor=${valor}&fbc=${encodeURIComponent(fbc)}&fbp=${fbp}&ttclid=${encodeURIComponent(ttclid)}&ttp=${ttp}&ip=${ip}&ua=${encodeURIComponent(ua)}`;
             
             const iframe = document.getElementById('tally-iframe');
             if (iframe) {
